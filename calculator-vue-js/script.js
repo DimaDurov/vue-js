@@ -1,63 +1,75 @@
-var filters = {
-  all: function(todos) {
-    return todos;
-  },
-  hide: function(todos) {
-    return todos.filter(function(todo) {
-      return todo.complete;
-    });
-  },
-}
 
-var STORAGE_KEY = 'vue-js-todo-P7oZi9sL'
-var todoStorage = {
-  fetch: function () {
-    var todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    return todos;
-  },
-  save: function (todos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-  }
-}
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
 
-var app = new Vue({
-  el: '#app',
-  data: {
-    inputVal: '',
-    todos: todoStorage.fetch(),
-    visibility: 'all'
-  },
-  watch: {
-    todos: {
-      handler: function(todos) {
-        todoStorage.save(todos);
-      }
-    }
-  },
-  computed: {
-    filteredTodos: function () {
-      return filters[this.visibility](this.todos);
-    }
-  },
-  methods: {
-    addTodo: function(e) {
-      e.preventDefault();
-      if (this.inputVal) {
-        this.todos.push({
-          text: this.inputVal,
-          complete: false
-        });
-      }
-      this.inputVal = '';
-    },
-    toggleTodo: function(todo) {
-      todo.complete = !todo.complete;
-    },
-    filterTodos: function(filter) {
-      this.visibility = filter;
-    },
-    deleteTodo: function(index) {
-      this.todos.splice(index, 1);
-    }
-  }
-});
+new Vue({
+	el: '#app',
+	data: {
+
+		calculation:'',
+		tempResult:'',
+	},
+	mounted() {
+		let btns = document.querySelectorAll('.btn')
+		for (btn of btns) {
+			btn.addEventListener('click',function() {
+				this.classList.add('animate')
+				this.classList.add('resetappearanim')
+			})
+			btn.addEventListener('animationend',function() {
+				this.classList.remove('animate')
+			})
+		}
+	},
+	methods: {
+		append(value) {
+			this.calculation += value.toString()
+		},
+		clear() {
+			this.calculation = ''
+			this.tempResult = ''
+		},
+		getResult() {
+			if(this.tempResult != ''){
+				this.calculation = this.tempResult
+				
+			}
+		},
+		backspace() {
+			this.calculation = this.calculation.slice(0,-1)
+		}
+	},
+	watch: {
+		calculation() {
+			if(this.calculation !== '' && !isNaN(this.calculation.slice(-1)) && this.calculation != this.result ){
+				this.tempResult = this.result.toString()
+			}
+		}
+	},
+	computed: {
+		result() {
+			if(!isNaN(this.calculation.slice(-1)))
+				return eval(this.calculation)
+			else
+				return eval(this.calculation.slice(0, -1))
+		},
+		fontSize() {
+			return this.fontSize = 50-(this.tempResult.length*1.25)
+		}
+	},
+	filters: {
+	  hugeNumber: (value) => {
+		 let parts = value.toString().split(".");
+		 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+		 return parts.join(".");
+	  },
+		number: (value) => {
+			return value.replaceAll('*','x')
+		},
+		calculation: (value) => {
+			return value.replaceAll('x',' x ').replaceAll('/',' / ').replaceAll('+',' + ').replaceAll('-',' - ')
+		}
+	}
+})
